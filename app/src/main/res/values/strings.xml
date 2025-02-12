@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">SamsungProject</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="logged_in">Вы вошли в аккаунт:</string>
+    <string name="my_paths">Мои маршруты</string>
+    <string name="new_path">Новый маршрут</string>
+    <string name="new_path_name">Введите название маршрута</string>
+    <string name="create_path">Создать маршрут</string>
+    <string name="path_name">Название маршрута</string>
+    <string name="new_path_base">Новый маршрут</string>
+    <string name="input_time">Введите время</string>
+    <string name="choose_len_path">Выберите длину маршрута</string>
+    <string name="long_path">Длинный</string>
+    <string name="medium_path">Средний</string>
+    <string name="little_path">Короткий</string>
+</resources>
