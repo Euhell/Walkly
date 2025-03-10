@@ -38,6 +38,10 @@ public class NewpathFragment extends Fragment {
     private MyLocationNewOverlay myLocationOverlay;
     private RouteFetcher routeFetcher;
     private Polyline routeOverlay;
+    private GeoPoint lastLocation = null;
+    private long lastUpdateTime = 0;
+    private static final long UPDATE_INTERVAL_MS = 180000; // 3 minutes
+    private static final double MIN_DISTANCE_CHANGE_METERS = 50; // НЕ ЗАБЫТЬ ДОБАВИТЬ TextView - СКОЛЬКО ОСТАЛОСЬ ИДТИ!!!
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -59,21 +63,7 @@ public class NewpathFragment extends Fragment {
         map.getTileProvider().clearTileCache();
         map.getOverlays().add(myLocationOverlay);
         routeFetcher = new RouteFetcher();
-        myLocationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
-            GeoPoint currentLocation = myLocationOverlay.getMyLocation();
-            if (currentLocation != null) {
-                Log.d("RouteUpdate", "Местоположение получено: " +
-                        currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
-                try {
-                    drawRoute(currentLocation.getLatitude(), currentLocation.getLongitude(),
-                            55.7998, 37.5341, "foot");
-                } catch (IOException e) {
-                    Log.e("RouteError", "Ошибка построения маршрута", e);
-                }
-            } else {
-                Log.e("RouteError", "Не удалось получить местоположение даже после обновления");
-            }
-        }));
+        updateLocation(); // initialize route & location
         ImageButton imgbtn = view.findViewById(R.id.imageButton);
         imgbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -131,7 +121,6 @@ public class NewpathFragment extends Fragment {
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(requireContext(), permission)
                     != PackageManager.PERMISSION_GRANTED) {
-                // Permission is not granted
                 permissionsToRequest.add(permission);
             }
         }
@@ -176,11 +165,50 @@ public class NewpathFragment extends Fragment {
         myLocationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
             GeoPoint currentLocation = myLocationOverlay.getMyLocation();
             if (currentLocation != null) {
-                Log.d("LocationUpdate", "Текущее местоположение: " +
-                        currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
+                long currentTime = System.currentTimeMillis();
+                if (shouldUpdateRoute(currentLocation, currentTime)) {
+                    Log.d("LocationUpdate", "Обновление маршрута: " +
+                            currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
+                    try {
+                        drawRoute(currentLocation.getLatitude(), currentLocation.getLongitude(),
+                                55.7998, 37.5341, "foot");
+                        lastLocation = currentLocation;
+                        lastUpdateTime = currentTime;
+                    } catch (IOException e) {
+                        Log.e("RouteError", "Ошибка построения маршрута", e);
+                    }
+                } else {
+                    Log.d("LocationUpdate", "Обновление маршрута не требуется");
+                }
             } else {
                 Log.e("LocationUpdate", "Не удалось получить местоположение");
             }
         }));
+    }
+
+    private boolean shouldUpdateRoute(GeoPoint newLocation, long currentTime) {
+        if (lastLocation == null) {
+            return true;
+        }
+        if ((currentTime - lastUpdateTime) < UPDATE_INTERVAL_MS) {
+            return false;
+        }
+        return distanceBetween(lastLocation, newLocation) > MIN_DISTANCE_CHANGE_METERS;
+    }
+
+    private double distanceBetween(GeoPoint p1, GeoPoint p2) {
+        double lat1 = p1.getLatitude();
+        double lon1 = p1.getLongitude();
+        double lat2 = p2.getLatitude();
+        double lon2 = p2.getLongitude();
+        double earthRadius = 6371000;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        // Haversine formula
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return earthRadius * c;
     }
 }
