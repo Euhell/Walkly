@@ -17,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import org.osmdroid.views.MapView;
 import org.osmdroid.config.Configuration;
@@ -31,17 +32,22 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.List;
+import java.util.Random;
 
 public class NewpathFragment extends Fragment {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     private MapView map = null;
+    private TextView distanceLeft;
     private MyLocationNewOverlay myLocationOverlay;
     private RouteFetcher routeFetcher;
     private Polyline routeOverlay;
     private GeoPoint lastLocation = null;
     private long lastUpdateTime = 0;
     private static final long UPDATE_INTERVAL_MS = 180000; // 3 minutes
-    private static final double MIN_DISTANCE_CHANGE_METERS = 50; // НЕ ЗАБЫТЬ ДОБАВИТЬ TextView - СКОЛЬКО ОСТАЛОСЬ ИДТИ!!!
+    private static final double MIN_DISTANCE_CHANGE_METERS = 50;
+    private final MenuFragment.DistanceType distancetype = MenuFragment.currentDistance;
+    private static double endLon;
+    private static double endLat;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,6 +55,7 @@ public class NewpathFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_newpath, container, false);
         Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(getContext()));
         map = view.findViewById(R.id.map);
+        distanceLeft = view.findViewById(R.id.distanceLeft);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
         requestPermissionsIfNecessary(new String[]{
@@ -63,6 +70,9 @@ public class NewpathFragment extends Fragment {
         map.getTileProvider().clearTileCache();
         map.getOverlays().add(myLocationOverlay);
         routeFetcher = new RouteFetcher();
+        generatePath(distancetype); // generate the end of the path
+        // endLat = 55.7998; метро Аэропорт (для тестов)
+        // endLon = 37.5341;
         updateLocation(); // initialize route & location
         ImageButton imgbtn = view.findViewById(R.id.imageButton);
         imgbtn.setOnClickListener(new View.OnClickListener() {
@@ -113,6 +123,8 @@ public class NewpathFragment extends Fragment {
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             myLocationOverlay.enableMyLocation();
             myLocationOverlay.enableFollowLocation();
+        } else {
+            Log.e("Permissions", "Разрешение на геолокацию не выдано");
         }
     }
 
@@ -160,6 +172,39 @@ public class NewpathFragment extends Fragment {
         }, profile);
     }
 
+    private void generatePath(MenuFragment.DistanceType distanceType) {
+        myLocationOverlay.enableMyLocation();
+        myLocationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
+        GeoPoint startLocation = myLocationOverlay.getMyLocation();
+        if (startLocation == null) {
+            Log.e("generatePath", "Не удалось получить текущее местоположение");
+            return;
+        }
+        Log.d("PathGenerator", "Стартовые координаты: " + startLocation.getLatitude() + ", " + startLocation.getLongitude());
+        Random random = new Random();
+        double distance;
+        switch (distanceType) {
+            case Small:
+                distance = 500 + 500 * random.nextDouble();
+                break;
+            case Medium:
+                distance = 1000 + 1000 * random.nextDouble();
+                break;
+            case Long:
+                distance = 1500 + 1500 * random.nextDouble();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + distanceType);
+        }
+        double angle = random.nextDouble() * 2 * Math.PI;
+        double deltaLat = (distance / 111000) * Math.cos(angle); // 111000м ≈ 1° широты
+        double deltaLon = (distance / (111000 * Math.cos(Math.toRadians(startLocation.getLatitude())))) * Math.sin(angle);
+        endLat = startLocation.getLatitude() + deltaLat;
+        endLon = startLocation.getLongitude() + deltaLon;
+        Log.d("PathGenerator", "Конечные координаты: " + endLat + ", " + endLon);
+        }));
+    }
+
     private void updateLocation() {
         myLocationOverlay.enableMyLocation();
         myLocationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
@@ -167,21 +212,21 @@ public class NewpathFragment extends Fragment {
             if (currentLocation != null) {
                 long currentTime = System.currentTimeMillis();
                 if (shouldUpdateRoute(currentLocation, currentTime)) {
-                    Log.d("LocationUpdate", "Обновление маршрута: " +
+                    Log.d("UpdateLocation", "Обновление маршрута: " +
                             currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
                     try {
                         drawRoute(currentLocation.getLatitude(), currentLocation.getLongitude(),
-                                55.7998, 37.5341, "foot");
+                                endLat, endLon, "foot");
                         lastLocation = currentLocation;
                         lastUpdateTime = currentTime;
                     } catch (IOException e) {
                         Log.e("RouteError", "Ошибка построения маршрута", e);
                     }
                 } else {
-                    Log.d("LocationUpdate", "Обновление маршрута не требуется");
+                    Log.d("UpdateLocation", "Обновление маршрута не требуется");
                 }
             } else {
-                Log.e("LocationUpdate", "Не удалось получить местоположение");
+                Log.e("UpdateLocation", "Не удалось получить местоположение");
             }
         }));
     }
@@ -193,7 +238,10 @@ public class NewpathFragment extends Fragment {
         if ((currentTime - lastUpdateTime) < UPDATE_INTERVAL_MS) {
             return false;
         }
-        return distanceBetween(lastLocation, newLocation) > MIN_DISTANCE_CHANGE_METERS;
+        double dist = distanceBetween(lastLocation, newLocation);
+        distanceLeft.setText((int) dist);
+        Log.d("DIST", String.valueOf((int)dist));
+        return dist > MIN_DISTANCE_CHANGE_METERS;
     }
 
     private double distanceBetween(GeoPoint p1, GeoPoint p2) {

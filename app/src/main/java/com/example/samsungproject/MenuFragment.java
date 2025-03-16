@@ -22,7 +22,7 @@ public class MenuFragment extends Fragment {
         Medium,
         Long
     }
-    public DistanceType currentDistance;
+    public static DistanceType currentDistance;
     String[] items = {"Длинный", "Средний", "Короткий"};
     AutoCompleteTextView autoCompleteTextView;
     ArrayAdapter<String> adapterItems;

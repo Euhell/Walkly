@@ -30,7 +30,7 @@ public class RouteFetcher {
     public void fetchRoute(double startLat, double startLon, double endLat, double endLon,
                            RouteCallback callback, String profile) throws IOException {
         String url = API_URL + "?point=" + startLat + "," + startLon + "&point=" + endLat + "," + endLon +
-                "&profile=" + profile + "&locale=ru&key=" + API_KEY + "&points_encoded=false";
+                "&profile=" + profile + "&locale=ru&key=" + API_KEY + "&points_encoded=false&avoid=motorway,trunk";
         Request request = new Request.Builder().url(url).get().build();
         client.newCall(request).enqueue(new Callback() {
             @Override
