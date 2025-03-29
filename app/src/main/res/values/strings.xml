@@ -15,4 +15,7 @@
     <string name="medium_path">Средний</string>
     <string name="little_path">Короткий</string>
     <string name="step_forward">Пройдите дальше</string>
+    <string name="home">Меню</string>
+    <string name="map">Карта</string>
+    <string name="settings">Настройки</string>
 </resources>

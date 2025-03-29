@@ -61,26 +61,21 @@ public class NewpathFragment extends Fragment {
         requestPermissionsIfNecessary(new String[]{
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-        });
+                Manifest.permission.WRITE_EXTERNAL_STORAGE});
         myLocationOverlay = new MyLocationNewOverlay(new GpsMyLocationProvider(requireContext()), map);
         myLocationOverlay.enableMyLocation();
         myLocationOverlay.enableFollowLocation();
         map.getController().setZoom(18.0);
         map.getTileProvider().clearTileCache();
         map.getOverlays().add(myLocationOverlay);
-        routeFetcher = new RouteFetcher();
-        generatePath(distancetype); // generate the end of the path
-        // endLat = 55.7998; метро Аэропорт (для тестов)
-        // endLon = 37.5341;
-        updateLocation(); // initialize route & location
-        ImageButton imgbtn = view.findViewById(R.id.imageButton);
-        imgbtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Navigation.findNavController(view).navigate(R.id.action_newpathFragment_to_menuFragment);
-            }
-        });
+        if (routeFetcher == null) {
+            routeFetcher = new RouteFetcher();
+        }
+        if (distancetype != null) {
+            generatePath(distancetype); // generate the end of the path
+            // endLat = 55.7998; endLon = 37.5341; метро Аэропорт (для тестов)
+            updateLocation(); // initialize route & location
+        }
 
         return view;
     }
@@ -239,7 +234,7 @@ public class NewpathFragment extends Fragment {
             return false;
         }
         double dist = distanceBetween(lastLocation, newLocation);
-        distanceLeft.setText((int) dist);
+        distanceLeft.setText((int)dist);
         Log.d("DIST", String.valueOf((int)dist));
         return dist > MIN_DISTANCE_CHANGE_METERS;
     }

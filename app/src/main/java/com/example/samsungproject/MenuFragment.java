@@ -75,7 +75,8 @@ public class MenuFragment extends Fragment {
         dlgbtn.setOnClickListener(v -> {
             if (currentDistance != null) {
                 dialog.dismiss();
-                Navigation.findNavController(requireView()).navigate(R.id.action_menuFragment_to_newpathFragment);
+                Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
+                        .navigate(R.id.action_menuFragment_to_newpathFragment);
             } else {
                 toastText.setText("Ничего не выбрано");
                 toast.show();

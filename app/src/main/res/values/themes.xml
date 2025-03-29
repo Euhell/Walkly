@@ -12,7 +12,7 @@
         <item name="android:windowMinWidthMinor">90%</item>
         <item name="android:windowIsFloating">true</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
-        <item name="android:windowBackground">@drawable/bg_window</item>
+        <item name="android:windowBackground">@layout/bg_window</item>
     </style>
 
     <style name="TextInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
