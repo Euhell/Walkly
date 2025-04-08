@@ -1,4 +1,4 @@
-package com.example.samsungproject;
+package com.example.samsungproject.fragments;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -9,15 +9,18 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
 
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.TextView;
+
+import com.example.samsungproject.APICallback;
+import com.example.samsungproject.R;
+import com.example.samsungproject.fetchers.POIFetcher;
+import com.example.samsungproject.fetchers.RouteFetcher;
 
 import org.osmdroid.views.MapView;
 import org.osmdroid.config.Configuration;
@@ -48,14 +51,15 @@ public class NewpathFragment extends Fragment {
     private final MenuFragment.DistanceType distancetype = MenuFragment.currentDistance;
     private static double endLon;
     private static double endLat;
+    private boolean routeReady = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_newpath, container, false);
+        distanceLeft = view.findViewById(R.id.distanceLeft);
         Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(getContext()));
         map = view.findViewById(R.id.map);
-        distanceLeft = view.findViewById(R.id.distanceLeft);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
         requestPermissionsIfNecessary(new String[]{
@@ -72,9 +76,7 @@ public class NewpathFragment extends Fragment {
             routeFetcher = new RouteFetcher();
         }
         if (distancetype != null) {
-            generatePath(distancetype); // generate the end of the path
-            // endLat = 55.7998; endLon = 37.5341; метро Аэропорт (для тестов)
-            updateLocation(); // initialize route & location
+            generatePath(distancetype);
         }
 
         return view;
@@ -85,22 +87,16 @@ public class NewpathFragment extends Fragment {
         super.onResume();
         myLocationOverlay.enableMyLocation();
         myLocationOverlay.enableFollowLocation();
-        updateLocation();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this));
-        map.onResume(); //needed for compass, my location overlays, v6.0.0 and up
+        if (routeReady) {
+            updateLocation();
+        }
+        map.onResume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        //this will refresh the osmdroid configuration on resuming.
-        //if you make changes to the configuration, use
-        //SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        //Configuration.getInstance().save(this, prefs);
-        map.onPause();  //needed for compass, my location overlays, v6.0.0 and up
+        map.onPause();
     }
 
     @Override
@@ -132,8 +128,7 @@ public class NewpathFragment extends Fragment {
             }
         }
         if (!permissionsToRequest.isEmpty()) {
-            ActivityCompat.requestPermissions(
-                    requireActivity(),
+            ActivityCompat.requestPermissions(requireActivity(),
                     permissionsToRequest.toArray(new String[0]),
                     REQUEST_PERMISSIONS_REQUEST_CODE);
         }
@@ -141,7 +136,7 @@ public class NewpathFragment extends Fragment {
 
     private void drawRoute(double startLat, double startLon, double endLat, double endLon,
                            String profile) throws IOException {
-        routeFetcher.fetchRoute(startLat, startLon, endLat, endLon, new RouteFetcher.RouteCallback() {
+        routeFetcher.fetchRoute(startLat, startLon, endLat, endLon, new APICallback() {
             @Override
             public void onSuccess(List<double[]> routePoints) {
                 if (routeOverlay != null) {
@@ -173,6 +168,7 @@ public class NewpathFragment extends Fragment {
         GeoPoint startLocation = myLocationOverlay.getMyLocation();
         if (startLocation == null) {
             Log.e("generatePath", "Не удалось получить текущее местоположение");
+
             return;
         }
         Log.d("PathGenerator", "Стартовые координаты: " + startLocation.getLatitude() + ", " + startLocation.getLongitude());
@@ -192,11 +188,32 @@ public class NewpathFragment extends Fragment {
                 throw new IllegalStateException("Unexpected value: " + distanceType);
         }
         double angle = random.nextDouble() * 2 * Math.PI;
-        double deltaLat = (distance / 111000) * Math.cos(angle); // 111000м ≈ 1° широты
-        double deltaLon = (distance / (111000 * Math.cos(Math.toRadians(startLocation.getLatitude())))) * Math.sin(angle);
-        endLat = startLocation.getLatitude() + deltaLat;
-        endLon = startLocation.getLongitude() + deltaLon;
-        Log.d("PathGenerator", "Конечные координаты: " + endLat + ", " + endLon);
+        double deltaLat = startLocation.getLatitude() + (distance / 111000) * Math.cos(angle); // 111000м ≈ 1° широты
+        double deltaLon = startLocation.getLongitude() + (distance / (111000 * Math.cos(
+                Math.toRadians(startLocation.getLatitude())))) * Math.sin(angle);
+        POIFetcher poiFetcher = new POIFetcher();
+        GeoPoint poi = poiFetcher.getNearestPOI(deltaLat, deltaLon, "shop",
+                new APICallback() {
+                    @Override
+                    public void onSuccess(List<double[]> routePoints) {
+                        if (routePoints.isEmpty()) {
+                            Log.e("POIFetcher", "Пустой список POI");
+                            return;
+                        }
+                        requireActivity().runOnUiThread(() -> {
+                            endLat = routePoints.get(0)[0];
+                            endLon = routePoints.get(0)[1];
+                            Log.d("PathGenerator(POIFetcher)", "Конечные координаты: " + endLat + ", " + endLon);
+                            routeReady = true;
+                            updateLocation();
+                        });
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Log.e("PathGenerator(POIFetcher)", error);
+                    }
+                });
         }));
     }
 
@@ -236,6 +253,7 @@ public class NewpathFragment extends Fragment {
         double dist = distanceBetween(lastLocation, newLocation);
         distanceLeft.setText((int)dist);
         Log.d("DIST", String.valueOf((int)dist));
+
         return dist > MIN_DISTANCE_CHANGE_METERS;
     }
 
@@ -252,6 +270,9 @@ public class NewpathFragment extends Fragment {
                 Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
                         Math.sin(dLon / 2) * Math.sin(dLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
         return earthRadius * c;
     }
+
+
 }

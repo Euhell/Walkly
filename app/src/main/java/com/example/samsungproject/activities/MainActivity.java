@@ -1,4 +1,4 @@
-package com.example.samsungproject;
+package com.example.samsungproject.activities;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
+
+import com.example.samsungproject.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -24,9 +26,11 @@ public class MainActivity extends AppCompatActivity {
                 int itemId = item.getItemId();
                 int currentDestinationId = navController.getCurrentDestination().getId();
                 if (itemId == currentDestinationId) {
+
                     return true;
                 }
                 navController.navigate(itemId);
+
                 return true;
             });
         } else {

@@ -1,8 +1,10 @@
-package com.example.samsungproject;
+package com.example.samsungproject.fetchers;
 
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+
+import com.example.samsungproject.APICallback;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,15 +22,10 @@ import okhttp3.Response;
 public class RouteFetcher {
     private static final String API_URL = "https://graphhopper.com/api/1/route";
     private final String API_KEY = "c7324357-5b93-4dcc-b43f-241565845842";
-    OkHttpClient client = new OkHttpClient();
-
-    public interface RouteCallback {
-        void onSuccess(List<double[]> routePoints);
-        void onError(String error);
-    }
+    private OkHttpClient client = new OkHttpClient();
 
     public void fetchRoute(double startLat, double startLon, double endLat, double endLon,
-                           RouteCallback callback, String profile) throws IOException {
+                           APICallback callback, String profile) throws IOException {
         String url = API_URL + "?point=" + startLat + "," + startLon + "&point=" + endLat + "," + endLon +
                 "&profile=" + profile + "&locale=ru&key=" + API_KEY + "&points_encoded=false&avoid=motorway,trunk";
         Request request = new Request.Builder().url(url).get().build();
@@ -45,7 +42,7 @@ public class RouteFetcher {
                     return;
                 }
                 String responseBody = response.body().string();
-                Log.d("RouteResponse", responseBody);
+                // Log.d("RouteResponse", responseBody);
                 try {
                     JSONObject jsonResponse = new JSONObject(responseBody);
                     JSONArray paths = jsonResponse.getJSONArray("paths");
@@ -53,7 +50,6 @@ public class RouteFetcher {
                         callback.onError("Маршрут не найден");
                         return;
                     }
-
                     JSONObject pointsObject = paths.getJSONObject(0).getJSONObject("points");
                     JSONArray coordinates = pointsObject.getJSONArray("coordinates");
                     List<double[]> routePoints = new ArrayList<>();
@@ -68,6 +64,5 @@ public class RouteFetcher {
                 }
             }
         });
-//        Response response = client.newCall(request).execute();
     }
 }

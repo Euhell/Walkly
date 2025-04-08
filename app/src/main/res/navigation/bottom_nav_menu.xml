@@ -9,5 +9,5 @@
         android:id="@+id/newpathFragment"/>
     <item android:title="@string/settings"
         android:icon="@drawable/baseline_settings_24"
-        android:id="@+id/settings"/>
+        android:id="@+id/settingsFragment"/>
 </menu>
