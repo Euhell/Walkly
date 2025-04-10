@@ -1,22 +1,22 @@
 <resources>
     <string name="app_name">SamsungProject</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="logged_in">Вы вошли в аккаунт:</string>
-    <string name="my_paths">Мои маршруты</string>
-    <string name="new_path">Новый маршрут</string>
-    <string name="new_path_name">Введите название маршрута</string>
-    <string name="create_path">Создать маршрут</string>
-    <string name="path_name">Название маршрута</string>
-    <string name="new_path_base">Новый маршрут</string>
+    <string name="my_routes">Мои маршруты</string>
+    <string name="new_route">Новый маршрут</string>
+    <string name="new_route_name">Введите название маршрута</string>
+    <string name="create_route">Создать маршрут</string>
+    <string name="route_name">Название маршрута</string>
     <string name="input_time">Введите время</string>
-    <string name="choose_len_path">Выберите длину маршрута</string>
-    <string name="long_path">Длинный</string>
-    <string name="medium_path">Средний</string>
-    <string name="little_path">Короткий</string>
-    <string name="step_forward">Пройдите дальше</string>
+    <string name="choose_length_of_path">Выберите длину маршрута</string>
+    <string name="long_">Длинный</string>
+    <string name="medium">Средний</string>
+    <string name="small">Короткий</string>
+    <string name="route_is_not_chosen">маршрут не выбран</string>
     <string name="home">Меню</string>
     <string name="map">Карта</string>
     <string name="settings">Настройки</string>
     <string name="show_my_location">показать меня</string>
+    <string name="distance_meters">%1$d м</string>
+    <string name="distance_kilometers">%.1f км</string>
 </resources>

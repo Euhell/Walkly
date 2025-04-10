@@ -16,7 +16,7 @@
             android:layout_width="184dp"
             android:layout_height="55dp"
             android:layout_marginTop="70dp"
-            android:text="@string/new_path"
+            android:text="@string/new_route"
             android:textSize="16sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

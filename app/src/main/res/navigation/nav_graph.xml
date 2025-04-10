@@ -18,9 +18,9 @@
 
     <fragment
         android:id="@+id/newpathFragment"
-        android:name="com.example.samsungproject.fragments.NewpathFragment"
+        android:name="com.example.samsungproject.fragments.NewrouteFragment"
         android:label="Карта"
-        tools:layout="@layout/fragment_newpath" >
+        tools:layout="@layout/fragment_newroute" >
         <action
             android:id="@+id/action_newpathFragment_to_menuFragment"
             app:destination="@+id/menuFragment" />

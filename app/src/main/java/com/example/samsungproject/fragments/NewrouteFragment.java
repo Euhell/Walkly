@@ -40,7 +40,7 @@ import org.osmdroid.views.overlay.Polyline;
 import java.util.List;
 import java.util.Random;
 
-public class NewpathFragment extends Fragment {
+public class NewrouteFragment extends Fragment {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     private MapView map = null;
     private TextView distanceLeft;
@@ -61,7 +61,7 @@ public class NewpathFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_newpath, container, false);
+        View view = inflater.inflate(R.layout.fragment_newroute, container, false);
         Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(getContext()));
         distanceLeft = view.findViewById(R.id.distanceLeft);
         map = view.findViewById(R.id.map);
@@ -186,7 +186,6 @@ public class NewpathFragment extends Fragment {
         GeoPoint startLocation = myLocationOverlay.getMyLocation();
         if (startLocation == null) {
             Log.e("generatePath", "Не удалось получить текущее местоположение");
-
             return;
         }
         Log.d("PathGenerator", "Стартовые координаты: " + startLocation.getLatitude() + ", " + startLocation.getLongitude());
@@ -222,6 +221,14 @@ public class NewpathFragment extends Fragment {
                             endLat = routePoints.get(0)[0];
                             endLon = routePoints.get(0)[1];
                             Log.d("PathGenerator(POIFetcher)", "Конечные координаты: " + endLat + ", " + endLon);
+                            double distance = distanceBetween(startLocation, new GeoPoint(endLat, endLon));
+                            String distanceText;
+                            if (distance >= 1000) {
+                                distanceText = String.format("%.1f км", distance / 1000);
+                            } else {
+                                distanceText = String.format("%1$d м", distance);
+                            }
+                            distanceLeft.setText(distanceText);
                             routeReady = true;
                             updateLocation();
                         });
@@ -268,11 +275,16 @@ public class NewpathFragment extends Fragment {
         if ((currentTime - lastUpdateTime) < UPDATE_INTERVAL_MS) {
             return false;
         }
-        double dist = distanceBetween(lastLocation, newLocation);
-        distanceLeft.setText((int)dist);
-        Log.d("DIST", String.valueOf((int)dist));
+        double distance = distanceBetween(lastLocation, newLocation);
+        String distanceText;
+        if (distance >= 1000) {
+            distanceText = String.format("%.1f км", distance / 1000);
+        } else {
+            distanceText = String.format("%1$d м", distance);
+        }
+        distanceLeft.setText(distanceText);
 
-        return dist > MIN_DISTANCE_CHANGE_METERS;
+        return distance > MIN_DISTANCE_CHANGE_METERS;
     }
 
     private double distanceBetween(GeoPoint p1, GeoPoint p2) {
@@ -290,6 +302,8 @@ public class NewpathFragment extends Fragment {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         return earthRadius * c;
+        // return (int)p1.distanceToAsDouble(p2);
+
     }
 
 

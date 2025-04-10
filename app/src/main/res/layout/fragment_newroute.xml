@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.NewpathFragment">
+    tools:context=".fragments.NewrouteFragment">
 
     <org.osmdroid.views.MapView
         android:id="@+id/map"
@@ -17,16 +17,15 @@
 
     <TextView
         android:id="@+id/distanceLeft"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#AAFFFFFF"
+        android:layout_width="168dp"
+        android:layout_height="37dp"
+        android:background="#00FFFFFF"
         android:padding="8dp"
-        android:text="@string/step_forward"
+        android:text="@string/route_is_not_chosen"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/myLocationButton"
