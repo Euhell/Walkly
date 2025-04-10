@@ -15,6 +15,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.samsungproject.APICallback;
@@ -41,6 +44,7 @@ public class NewpathFragment extends Fragment {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     private MapView map = null;
     private TextView distanceLeft;
+    private ImageButton myLocation;
     private MyLocationNewOverlay myLocationOverlay;
     private RouteFetcher routeFetcher;
     private Polyline routeOverlay;
@@ -53,12 +57,13 @@ public class NewpathFragment extends Fragment {
     private static double endLat;
     private boolean routeReady = false;
 
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_newpath, container, false);
-        distanceLeft = view.findViewById(R.id.distanceLeft);
         Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(getContext()));
+        distanceLeft = view.findViewById(R.id.distanceLeft);
         map = view.findViewById(R.id.map);
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
@@ -72,6 +77,19 @@ public class NewpathFragment extends Fragment {
         map.getController().setZoom(18.0);
         map.getTileProvider().clearTileCache();
         map.getOverlays().add(myLocationOverlay);
+        myLocation = view.findViewById(R.id.myLocationButton);
+        myLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Animation anim = AnimationUtils.loadAnimation(requireContext(), R.anim.scale_click);
+                myLocation.startAnimation(anim);
+                GeoPoint currentLocation = myLocationOverlay.getMyLocation();
+                if (currentLocation != null) {
+                    map.getController().setZoom(18.0);
+                    map.getController().animateTo(currentLocation);
+                }
+            }
+        });
         if (routeFetcher == null) {
             routeFetcher = new RouteFetcher();
         }

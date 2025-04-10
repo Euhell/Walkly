@@ -56,7 +56,6 @@ public class MenuFragment extends Fragment {
         autoCompleteTextView = dialog.findViewById(R.id.auto_complete_text);
         adapterItems = new ArrayAdapter<>(requireContext(), R.layout.list_layout, items);
         autoCompleteTextView.setAdapter(adapterItems);
-
         autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

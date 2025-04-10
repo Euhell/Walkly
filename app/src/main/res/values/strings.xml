@@ -18,4 +18,5 @@
     <string name="home">Меню</string>
     <string name="map">Карта</string>
     <string name="settings">Настройки</string>
+    <string name="show_my_location">показать меня</string>
 </resources>
