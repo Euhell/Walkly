@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.samsungproject.APICallback;
+import com.example.samsungproject.API_IGNORE;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,13 +22,12 @@ import okhttp3.Response;
 
 public class RouteFetcher {
     private static final String API_URL = "https://graphhopper.com/api/1/route";
-    private final String API_KEY = "c7324357-5b93-4dcc-b43f-241565845842";
     private OkHttpClient client = new OkHttpClient();
 
     public void fetchRoute(double startLat, double startLon, double endLat, double endLon,
                            APICallback callback, String profile) throws IOException {
         String url = API_URL + "?point=" + startLat + "," + startLon + "&point=" + endLat + "," + endLon +
-                "&profile=" + profile + "&locale=ru&key=" + API_KEY + "&points_encoded=false&avoid=motorway,trunk";
+                "&profile=" + profile + "&locale=ru&key=" + API_IGNORE.API_KEY + "&points_encoded=false&avoid=motorway,trunk";
         Request request = new Request.Builder().url(url).get().build();
         client.newCall(request).enqueue(new Callback() {
             @Override
