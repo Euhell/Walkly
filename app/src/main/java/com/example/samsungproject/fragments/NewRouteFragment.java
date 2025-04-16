@@ -21,6 +21,9 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.example.samsungproject.APICallback;
+import com.example.samsungproject.API_IGNORE;
+import com.example.samsungproject.DistanceType;
+import com.example.samsungproject.POI;
 import com.example.samsungproject.R;
 import com.example.samsungproject.fetchers.POIFetcher;
 import com.example.samsungproject.fetchers.RouteFetcher;
@@ -38,24 +41,28 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
-public class NewrouteFragment extends Fragment {
+public class NewRouteFragment extends Fragment {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
     private MapView map = null;
     private TextView distanceLeft;
     private ImageButton myLocation;
     private MyLocationNewOverlay myLocationOverlay;
     private RouteFetcher routeFetcher;
+    private POIFetcher poiFetcher;
     private Polyline routeOverlay;
     private GeoPoint lastLocation = null;
     private long lastUpdateTime = 0;
     private static final long UPDATE_INTERVAL_MS = 180000; // 3 minutes
     private static final double MIN_DISTANCE_CHANGE_METERS = 50;
-    private final MenuFragment.DistanceType distancetype = MenuFragment.currentDistance;
+    private final DistanceType distancetype = MenuFragment.currentDistance;
     private static double endLon;
     private static double endLat;
     private boolean routeReady = false;
+    private int poiRetryCount = 0;
+    private ArrayList<POI> selectedTags;
 
 
     @Override
@@ -93,8 +100,14 @@ public class NewrouteFragment extends Fragment {
         if (routeFetcher == null) {
             routeFetcher = new RouteFetcher();
         }
+        if (poiFetcher == null) {
+            poiFetcher = new POIFetcher();
+        }
+        if (getArguments() != null) {
+            selectedTags = (ArrayList<POI>) getArguments().getSerializable("selectedTags");
+        }
         if (distancetype != null) {
-            generatePath(distancetype);
+            generatePath();
         }
 
         return view;
@@ -180,7 +193,7 @@ public class NewrouteFragment extends Fragment {
         }, profile);
     }
 
-    private void generatePath(MenuFragment.DistanceType distanceType) {
+    private void generatePath() {
         myLocationOverlay.enableMyLocation();
         myLocationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
         GeoPoint startLocation = myLocationOverlay.getMyLocation();
@@ -189,27 +202,8 @@ public class NewrouteFragment extends Fragment {
             return;
         }
         Log.d("PathGenerator", "Стартовые координаты: " + startLocation.getLatitude() + ", " + startLocation.getLongitude());
-        Random random = new Random();
-        double distance;
-        switch (distanceType) {
-            case Small:
-                distance = 500 + 500 * random.nextDouble();
-                break;
-            case Medium:
-                distance = 1000 + 1000 * random.nextDouble();
-                break;
-            case Long:
-                distance = 1500 + 1500 * random.nextDouble();
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + distanceType);
-        }
-        double angle = random.nextDouble() * 2 * Math.PI;
-        double deltaLat = startLocation.getLatitude() + (distance / 111000) * Math.cos(angle); // 111000м ≈ 1° широты
-        double deltaLon = startLocation.getLongitude() + (distance / (111000 * Math.cos(
-                Math.toRadians(startLocation.getLatitude())))) * Math.sin(angle);
-        POIFetcher poiFetcher = new POIFetcher();
-        GeoPoint poi = poiFetcher.getNearestPOI(deltaLat, deltaLon, "shop",
+        GeoPoint endLatLon = getRandomGeoPoint(distancetype, startLocation);
+        poiFetcher.getNearestPOI(endLatLon, selectedTags,
                 new APICallback() {
                     @Override
                     public void onSuccess(List<double[]> routePoints) {
@@ -226,7 +220,7 @@ public class NewrouteFragment extends Fragment {
                             if (distance >= 1000) {
                                 distanceText = String.format("%.1f км", distance / 1000);
                             } else {
-                                distanceText = String.format("%1$d м", distance);
+                                distanceText = String.format("%.1f м", distance);
                             }
                             distanceLeft.setText(distanceText);
                             routeReady = true;
@@ -236,7 +230,17 @@ public class NewrouteFragment extends Fragment {
 
                     @Override
                     public void onError(String error) {
-                        Log.e("PathGenerator(POIFetcher)", error);
+                        if (error.equals(API_IGNORE.ERROR_NO_POI)) {
+                            if (poiRetryCount < API_IGNORE.MAX_POI_RETRIES) {
+                                poiRetryCount++;
+                                Log.w("POIFetcher", "POI не найден, попытка " + poiRetryCount);
+                                requireActivity().runOnUiThread(() -> generatePath());
+                            } else {
+                                Log.e("POIFetcher", "Максимальное количество попыток достигнуто");
+                            }
+                        } else {
+                            Log.e("PathGenerator(POIFetcher)", error);
+                        }
                     }
                 });
         }));
@@ -304,6 +308,37 @@ public class NewrouteFragment extends Fragment {
         return earthRadius * c;
         // return (int)p1.distanceToAsDouble(p2);
 
+    }
+
+    private GeoPoint getRandomGeoPoint(DistanceType distanceType, GeoPoint startLocation) {
+        Random random = new Random();
+        double distance;
+        switch (distanceType) {
+            case Small:
+                distance = 500 + 500 * random.nextDouble();
+                break;
+            case Medium:
+                distance = 1000 + 1000 * random.nextDouble();
+                break;
+            case Long:
+                distance = 1500 + 1500 * random.nextDouble();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + distanceType);
+        }
+        double angle = random.nextDouble() * 2 * Math.PI; // 111000м ≈ 1° широты
+        double deltaLat = startLocation.getLatitude() + (distance / 111000) * Math.cos(angle);
+        double deltaLon = startLocation.getLongitude() + (distance / (111000 * Math.cos(
+                Math.toRadians(startLocation.getLatitude())))) * Math.sin(angle);
+        return new GeoPoint(deltaLat, deltaLon);
+    }
+
+    public static NewRouteFragment newInstance(ArrayList<POI> selectedTags) {
+        NewRouteFragment fragment = new NewRouteFragment();
+        Bundle args = new Bundle();
+        args.putSerializable("selectedTags", selectedTags);
+        fragment.setArguments(args);
+        return fragment;
     }
 
 

@@ -5,6 +5,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.samsungproject.APICallback;
+import com.example.samsungproject.API_IGNORE;
+import com.example.samsungproject.POI;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -12,6 +14,7 @@ import org.osmdroid.util.GeoPoint;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -23,12 +26,20 @@ import okhttp3.Response;
 
 public class POIFetcher {
 
-    private static final String API_URL = "https://overpass-api.de/api/interpreter?data=[out:json];";
+    private static final String API_URL = "https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];(";
     private OkHttpClient client = new OkHttpClient();
 
-    public GeoPoint getNearestPOI(double lat, double lon, String profile,
-                                  APICallback callback) {
-        String url = API_URL + "node(around:500," + lat + "," + lon + ")[\"" + profile + "\"];out;";
+    public void getNearestPOI(GeoPoint point, ArrayList<POI> selectedTags,
+                              APICallback callback) {
+        StringBuilder query = new StringBuilder(API_URL);
+        for (POI poi : selectedTags) {
+            query.append("node(around:500,")
+                    .append(point.getLatitude()).append(",")
+                    .append(point.getLongitude()).append(")")
+                    .append(poi.getTag()).append(";");
+        }
+        query.append(");out body;");
+        String url = query.toString();
         Request request = new Request.Builder().url(url).build();
         client.newCall(request).enqueue(new Callback() {
             @Override
@@ -48,7 +59,7 @@ public class POIFetcher {
                     JSONObject jsonResponse = new JSONObject(responseBody);
                     JSONArray elements = jsonResponse.getJSONArray("elements");
                     if (elements.length() == 0) {
-                        callback.onError("Нет POI поблизости");
+                        callback.onError(API_IGNORE.ERROR_NO_POI);
                         return;
                     }
                     JSONObject poi = elements.getJSONObject(new Random().nextInt(elements.length()));
@@ -68,10 +79,5 @@ public class POIFetcher {
                 }
             }
         });
-        return null;
     }
 }
-
-//    public int getRandomPOIType(String[] poiTags) {
-//
-//    }

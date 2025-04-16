@@ -26,9 +26,9 @@ public class RouteFetcher {
 
     public void fetchRoute(double startLat, double startLon, double endLat, double endLon,
                            APICallback callback, String profile) throws IOException {
-        String url = API_URL + "?point=" + startLat + "," + startLon + "&point=" + endLat + "," + endLon +
+        String query = API_URL + "?point=" + startLat + "," + startLon + "&point=" + endLat + "," + endLon +
                 "&profile=" + profile + "&locale=ru&key=" + API_IGNORE.API_KEY + "&points_encoded=false&avoid=motorway,trunk";
-        Request request = new Request.Builder().url(url).get().build();
+        Request request = new Request.Builder().url(query).get().build();
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
