@@ -4,6 +4,8 @@ import android.app.Dialog;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,7 +25,9 @@ import com.example.samsungproject.DistanceType;
 import com.example.samsungproject.POI;
 import com.example.samsungproject.POIAdapter;
 import com.example.samsungproject.R;
+import com.example.samsungproject.activities.MainActivity;
 import com.example.samsungproject.databinding.FragmentMenuBinding;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -99,8 +103,24 @@ public class MenuFragment extends Fragment {
             if (currentDistance != null && !selectedTags.isEmpty()) {
                 args.putSerializable("selectedTags", selectedTags);
                 dialog.dismiss();
-                Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
-                        .navigate(R.id.action_menuFragment_to_newpathFragment, args);
+                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                Fragment current = fragmentManager.findFragmentById(R.id.fragment_container);
+                if (current != null) {
+                    transaction.hide(current);
+                }
+                Fragment oldTarget = fragmentManager.findFragmentByTag(String.valueOf(R.id.newpathFragment));
+                if (oldTarget != null) {
+                    transaction.remove(oldTarget);
+                }
+                Fragment newTarget = NewRouteFragment.newInstance(selectedTags);
+                transaction.add(R.id.fragment_container, newTarget, String.valueOf(R.id.newpathFragment));
+                transaction.commit();
+                BottomNavigationView bottomNavigationView = requireActivity().findViewById(R.id.bottomNavigationView);
+                bottomNavigationView.setSelectedItemId(R.id.newpathFragment);
+                if (requireActivity() instanceof MainActivity) {
+                    ((MainActivity) requireActivity()).updateFragment(R.id.newpathFragment, newTarget);
+                }
             } else {
                 toastText.setText("Ничего не выбрано");
                 toast.show();
