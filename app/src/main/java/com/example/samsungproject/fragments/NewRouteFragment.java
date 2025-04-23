@@ -25,6 +25,7 @@ import com.example.samsungproject.API_IGNORE;
 import com.example.samsungproject.DistanceType;
 import com.example.samsungproject.POI;
 import com.example.samsungproject.R;
+import com.example.samsungproject.databinding.FragmentNewrouteBinding;
 import com.example.samsungproject.fetchers.POIFetcher;
 import com.example.samsungproject.fetchers.RouteFetcher;
 
@@ -63,15 +64,16 @@ public class NewRouteFragment extends Fragment {
     private boolean routeReady = false;
     private int poiRetryCount = 0;
     private ArrayList<POI> selectedTags;
+    private FragmentNewrouteBinding binding;
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_newroute, container, false);
+        binding = FragmentNewrouteBinding.inflate(inflater, container, false);
         Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(getContext()));
-        distanceLeft = view.findViewById(R.id.distanceLeft);
-        map = view.findViewById(R.id.map);
+        distanceLeft = binding.distanceLeft;
+        map = binding.map;
         map.setTileSource(TileSourceFactory.MAPNIK);
         map.setMultiTouchControls(true);
         requestPermissionsIfNecessary(new String[]{
@@ -84,17 +86,14 @@ public class NewRouteFragment extends Fragment {
         map.getController().setZoom(18.0);
         map.getTileProvider().clearTileCache();
         map.getOverlays().add(myLocationOverlay);
-        myLocation = view.findViewById(R.id.myLocationButton);
-        myLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Animation anim = AnimationUtils.loadAnimation(requireContext(), R.anim.scale_click);
-                myLocation.startAnimation(anim);
-                GeoPoint currentLocation = myLocationOverlay.getMyLocation();
-                if (currentLocation != null) {
-                    map.getController().setZoom(18.0);
-                    map.getController().animateTo(currentLocation);
-                }
+        myLocation = binding.myLocationButton;
+        myLocation.setOnClickListener(v -> {
+            Animation anim = AnimationUtils.loadAnimation(requireContext(), R.anim.scale_click);
+            myLocation.startAnimation(anim);
+            GeoPoint currentLocation = myLocationOverlay.getMyLocation();
+            if (currentLocation != null) {
+                map.getController().setZoom(18.0);
+                map.getController().animateTo(currentLocation);
             }
         });
         if (routeFetcher == null) {
@@ -110,7 +109,7 @@ public class NewRouteFragment extends Fragment {
             generatePath();
         }
 
-        return view;
+        return binding.getRoot();
     }
 
     @Override
@@ -128,6 +127,12 @@ public class NewRouteFragment extends Fragment {
     public void onPause() {
         super.onPause();
         map.onPause();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 
     @Override
@@ -216,13 +221,7 @@ public class NewRouteFragment extends Fragment {
                             endLon = routePoints.get(0)[1];
                             Log.d("PathGenerator(POIFetcher)", "Конечные координаты: " + endLat + ", " + endLon);
                             double distance = distanceBetween(startLocation, new GeoPoint(endLat, endLon));
-                            String distanceText;
-                            if (distance >= 1000) {
-                                distanceText = String.format("%.1f км", distance / 1000);
-                            } else {
-                                distanceText = String.format("%.1f м", distance);
-                            }
-                            distanceLeft.setText(distanceText);
+                            distanceLeft.setText(formatDistance(distance));
                             routeReady = true;
                             updateLocation();
                         });
@@ -280,13 +279,7 @@ public class NewRouteFragment extends Fragment {
             return false;
         }
         double distance = distanceBetween(lastLocation, newLocation);
-        String distanceText;
-        if (distance >= 1000) {
-            distanceText = String.format("%.1f км", distance / 1000);
-        } else {
-            distanceText = String.format("%1$d м", distance);
-        }
-        distanceLeft.setText(distanceText);
+        distanceLeft.setText(formatDistance(distance));
 
         return distance > MIN_DISTANCE_CHANGE_METERS;
     }
@@ -341,5 +334,26 @@ public class NewRouteFragment extends Fragment {
         return fragment;
     }
 
+    private String getSelectedUnit() {
+        return PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString("unit_pref", "Метры");
+    }
+
+    private String formatDistance(double meters) {
+        String unit = getSelectedUnit();
+        switch (unit) {
+            case "Мили":
+                return String.format("%.2f миль", meters / 1609.34);
+            case "Футы":
+                return String.format("%.2f футов", meters / 0.3048);
+            case "Ярды":
+                return String.format("%.2f ярдов", meters / 0.9144);
+            case "Километры":
+                return meters >= 1000 ? String.format("%.2f км", meters / 1000)
+                        : String.format("%.0f м", meters);
+            default:
+                return String.format("%.0f м", meters);
+        }
+    }
 
 }

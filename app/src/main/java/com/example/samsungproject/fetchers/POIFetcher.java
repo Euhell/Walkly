@@ -26,7 +26,7 @@ import okhttp3.Response;
 
 public class POIFetcher {
 
-    private static final String API_URL = "https://overpass-api.de/api/interpreter?data=[out:json][timeout:25];(";
+    private static final String API_URL = "https://overpass.kumi.systems/api/interpreter?data=[out:json][timeout:25];(";
     private OkHttpClient client = new OkHttpClient();
 
     public void getNearestPOI(GeoPoint point, ArrayList<POI> selectedTags,

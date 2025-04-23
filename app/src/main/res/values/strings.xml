@@ -8,7 +8,7 @@
     <string name="create_route">Создать маршрут</string>
     <string name="route_name">Название маршрута</string>
     <string name="input_time">Введите время</string>
-    <string name="choose_length_of_path">Выберите длину маршрута</string>
+    <string name="select_length_of_path">Выберите длину маршрута</string>
     <string name="long_">Длинный</string>
     <string name="medium">Средний</string>
     <string name="small">Короткий</string>
@@ -19,4 +19,5 @@
     <string name="show_my_location">показать меня</string>
     <string name="distance_meters">%1$d м</string>
     <string name="distance_kilometers">%.1f км</string>
+    <string name="select_units_of_distance_measurement">Выбрать единицы расстояния</string>
 </resources>

@@ -23,6 +23,7 @@ import com.example.samsungproject.DistanceType;
 import com.example.samsungproject.POI;
 import com.example.samsungproject.POIAdapter;
 import com.example.samsungproject.R;
+import com.example.samsungproject.databinding.FragmentMenuBinding;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class MenuFragment extends Fragment {
+    private FragmentMenuBinding binding;
     public static DistanceType currentDistance;
     private String[] lengthItems = {"Длинный", "Средний", "Короткий"};
     private AutoCompleteTextView autoCompleteTextView;
@@ -43,18 +45,16 @@ public class MenuFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_menu, container, false);
+        binding = FragmentMenuBinding.inflate(inflater, container, false);
         args = new Bundle();
         selectedTags = new ArrayList<>();
-        Button btn = view.findViewById(R.id.button);
-        btn.setOnClickListener(new View.OnClickListener() {
+        binding.button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showDialog();
             }
         });
-
-        return view;
+        return binding.getRoot();
     }
 
     private void showDialog() {
@@ -107,5 +107,11 @@ public class MenuFragment extends Fragment {
             }
         });
         dialog.show();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
     }
 }

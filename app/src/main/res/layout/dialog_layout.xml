@@ -13,7 +13,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="32dp"
-            android:hint="@string/choose_length_of_path"
+            android:hint="@string/select_length_of_path"
             style="@style/TextInputLayoutStyle"
             app:endIconMode="dropdown_menu"
             app:layout_constraintTop_toTopOf="parent"
