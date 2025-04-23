@@ -26,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
                 int itemId = item.getItemId();
                 int currentDestinationId = navController.getCurrentDestination().getId();
                 if (itemId == currentDestinationId) {
-
                     return true;
                 }
                 navController.navigate(itemId);

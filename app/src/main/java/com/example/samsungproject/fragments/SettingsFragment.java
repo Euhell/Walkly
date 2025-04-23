@@ -14,11 +14,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
-import com.example.samsungproject.R;
 import com.example.samsungproject.databinding.FragmentSettingsBinding;
 
 public class SettingsFragment extends Fragment {
     private FragmentSettingsBinding binding;
+    private SharedPreferences prefs;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -30,11 +30,10 @@ public class SettingsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         String[] units = {"Метры", "Мили", "Футы", "Ярды"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(), android.R.layout.simple_list_item_1, units
-        );
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_list_item_1, units);
         binding.autoCompleteText.setAdapter(adapter);
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String current = prefs.getString("unit_pref", "Метры");
         binding.autoCompleteText.setText(current, false);
         binding.autoCompleteText.setOnItemClickListener((parent, selectedView, position, id) -> {

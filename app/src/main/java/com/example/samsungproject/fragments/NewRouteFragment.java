@@ -42,7 +42,6 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.overlay.Polyline;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
 
 public class NewRouteFragment extends Fragment {
@@ -102,10 +101,8 @@ public class NewRouteFragment extends Fragment {
         if (poiFetcher == null) {
             poiFetcher = new POIFetcher();
         }
-        if (getArguments() != null) {
+        if (distancetype != null && getArguments() != null) {
             selectedTags = (ArrayList<POI>) getArguments().getSerializable("selectedTags");
-        }
-        if (distancetype != null) {
             generatePath();
         }
 
@@ -348,11 +345,11 @@ public class NewRouteFragment extends Fragment {
                 return String.format("%.2f футов", meters / 0.3048);
             case "Ярды":
                 return String.format("%.2f ярдов", meters / 0.9144);
-            case "Километры":
+            case "Метры":
                 return meters >= 1000 ? String.format("%.2f км", meters / 1000)
                         : String.format("%.0f м", meters);
             default:
-                return String.format("%.0f м", meters);
+                throw new IllegalStateException("Unexpected value: " + unit);
         }
     }
 
