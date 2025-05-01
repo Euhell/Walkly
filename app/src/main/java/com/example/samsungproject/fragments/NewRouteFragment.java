@@ -19,6 +19,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.samsungproject.APICallback;
 import com.example.samsungproject.API_IGNORE;
@@ -46,21 +47,23 @@ import java.util.Random;
 
 public class NewRouteFragment extends Fragment {
     private final int REQUEST_PERMISSIONS_REQUEST_CODE = 1;
-    private MapView map = null;
+    private MapView map;
     private TextView distanceLeft;
     private ImageButton myLocation;
     private MyLocationNewOverlay myLocationOverlay;
     private RouteFetcher routeFetcher;
     private POIFetcher poiFetcher;
     private Polyline routeOverlay;
-    private GeoPoint lastLocation = null;
+    private GeoPoint lastLocation;
+    private GeoPoint endLocation;
     private long lastUpdateTime = 0;
-    private static final long UPDATE_INTERVAL_MS = 180000; // 3 minutes
-    private static final double MIN_DISTANCE_CHANGE_METERS = 50;
+    private static final long UPDATE_INTERVAL_MS = 15000;
+    private static final double MIN_DISTANCE_CHANGE_METERS = 15;
     private final DistanceType distancetype = MenuFragment.currentDistance;
     private static double endLon;
     private static double endLat;
     private boolean routeReady = false;
+    private boolean routeCompleted = false;
     private int poiRetryCount = 0;
     private ArrayList<POI> selectedTags;
     private FragmentNewrouteBinding binding;
@@ -217,9 +220,11 @@ public class NewRouteFragment extends Fragment {
                             endLat = routePoints.get(0)[0];
                             endLon = routePoints.get(0)[1];
                             Log.d("PathGenerator(POIFetcher)", "Конечные координаты: " + endLat + ", " + endLon);
-                            double distance = distanceBetween(startLocation, new GeoPoint(endLat, endLon));
+                            endLocation = new GeoPoint(endLat, endLon);
+                            double distance = distanceBetween(startLocation, endLocation);
                             distanceLeft.setText(formatDistance(distance));
                             routeReady = true;
+                            routeCompleted = false;
                             updateLocation();
                         });
                     }
@@ -248,7 +253,7 @@ public class NewRouteFragment extends Fragment {
             GeoPoint currentLocation = myLocationOverlay.getMyLocation();
             if (currentLocation != null) {
                 long currentTime = System.currentTimeMillis();
-                if (shouldUpdateRoute(currentLocation, currentTime)) {
+                if (shouldUpdateRoute(currentLocation /*, currentTime */)) {
                     Log.d("UpdateLocation", "Обновление маршрута: " +
                             currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
                     try {
@@ -259,6 +264,11 @@ public class NewRouteFragment extends Fragment {
                     } catch (IOException e) {
                         Log.e("RouteError", "Ошибка построения маршрута", e);
                     }
+                } else if (distanceBetween(currentLocation, endLocation) <= 10) {
+                    distanceLeft.setText("Маршрут пройден");
+                    routeCompleted = true;
+                    Toast.makeText(requireContext(), "Вы достигли точки назначения!", Toast.LENGTH_LONG).show();
+                    map.getOverlays().remove(routeOverlay);
                 } else {
                     Log.d("UpdateLocation", "Обновление маршрута не требуется");
                 }
@@ -268,13 +278,13 @@ public class NewRouteFragment extends Fragment {
         }));
     }
 
-    private boolean shouldUpdateRoute(GeoPoint newLocation, long currentTime) {
+    private boolean shouldUpdateRoute(GeoPoint newLocation /*, long currentTime */) {
         if (lastLocation == null) {
             return true;
         }
-        if ((currentTime - lastUpdateTime) < UPDATE_INTERVAL_MS) {
-            return false;
-        }
+//        if ((currentTime - lastUpdateTime) < UPDATE_INTERVAL_MS) {
+//            return false;
+//        }
         double distance = distanceBetween(lastLocation, newLocation);
         distanceLeft.setText(formatDistance(distance));
 

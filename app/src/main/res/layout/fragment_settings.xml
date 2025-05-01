@@ -7,26 +7,26 @@
     android:layout_height="match_parent"
     tools:context=".fragments.SettingsFragment">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/text_input_layout"
-        style="@style/TextInputLayoutStyle"
-        android:layout_width="280dp"
+    <Spinner
+        android:id="@+id/units"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/select_units_of_distance_measurement"
-        app:endIconMode="dropdown_menu"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="16dp"
+        />
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/auto_complete_text"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:inputType="none"
-            android:padding="16dp"
-            android:textColor="@color/black"
-            android:textSize="16sp" />
-    </com.google.android.material.textfield.TextInputLayout>
+    <Spinner
+        android:id="@+id/theme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@+id/units"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding="16dp"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

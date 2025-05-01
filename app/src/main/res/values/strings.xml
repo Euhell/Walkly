@@ -20,4 +20,5 @@
     <string name="distance_meters">%1$d м</string>
     <string name="distance_kilometers">%.1f км</string>
     <string name="select_units_of_distance_measurement">Выбрать единицы расстояния</string>
+    <string name="app_theme">Тема приложения</string>
 </resources>
