@@ -68,21 +68,25 @@ public class MenuFragment extends Fragment {
         switch (SavedUnits) {
             case "Мили":
                 binding.distancePassed.setText("Всего пройдено: " +
-                        String.format("%.2f миль", totalDistance / 1609.34));
+                        String.format("%.2f миль", (double) totalDistance / 1609.34));
+                break;
             case "Футы":
                 binding.distancePassed.setText("Всего пройдено: " +
-                        String.format("%.2f футов", totalDistance / 0.3048));
+                        String.format("%.2f футов", (double) totalDistance / 0.3048));
+                break;
             case "Ярды":
                 binding.distancePassed.setText("Всего пройдено: " +
-                        String.format("%.2f ярдов", totalDistance / 0.9144));
+                        String.format("%.2f ярдов", (double) totalDistance / 0.9144));
+                break;
             case "Метры":
                 if (totalDistance >= 1000) {
                     binding.distancePassed.setText("Всего пройдено: " +
-                            String.format("%.2f км", totalDistance / 1000));
+                            String.format("%.2f км", (double) totalDistance / 1000));
                 } else {
                     binding.distancePassed.setText("Всего пройдено: " +
-                            String.format("%.0f м", totalDistance));
+                            String.format("%.0f м", (double) totalDistance));
                 }
+                break;
             default:
                 throw new IllegalStateException("Unexpected value: " + SavedUnits);
         }

@@ -54,8 +54,12 @@ public class SettingsFragment extends Fragment {
                     return;
                 }
                 String selectedUnit = parent.getItemAtPosition(position).toString();
-                prefs.edit().putString("unit_pref", selectedUnit).apply();
-                Toast.makeText(requireContext(), "Выбрано: " + selectedUnit, Toast.LENGTH_SHORT).show();
+                String oldUnit = prefs.getString("unit_pref", "Метры");
+                if (!selectedUnit.equals(oldUnit)) {
+                    prefs.edit().putString("unit_pref", selectedUnit).apply();
+                    Toast.makeText(requireContext(), "Выбрано: " + selectedUnit, Toast.LENGTH_SHORT).show();
+                    requireActivity().recreate();
+                }
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
@@ -80,6 +84,7 @@ public class SettingsFragment extends Fragment {
                     } else {
                         mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
                     }
+                    Toast.makeText(requireContext(), "Выбрано: " + mode, Toast.LENGTH_SHORT).show();
                     AppCompatDelegate.setDefaultNightMode(mode);
                     requireActivity().recreate();
                 }
