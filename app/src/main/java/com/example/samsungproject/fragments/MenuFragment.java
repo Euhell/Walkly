@@ -1,8 +1,12 @@
 package com.example.samsungproject.fragments;
 
 import android.app.Dialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -10,6 +14,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -39,10 +44,8 @@ import java.util.List;
 public class MenuFragment extends Fragment {
     private FragmentMenuBinding binding;
     public static DistanceType currentDistance;
-    private String[] lengthItems = {"Длинный", "Средний", "Короткий"};
+    private final String[] lengthItems = {"Длинный", "Средний", "Короткий"};
     private AutoCompleteTextView autoCompleteTextView;
-    private ArrayAdapter<String> adapterItems;
-    private RecyclerView recyclerView;
     private Bundle args;
     private ArrayList<POI> selectedTags;
 
@@ -50,15 +53,39 @@ public class MenuFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentMenuBinding.inflate(inflater, container, false);
+        return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         args = new Bundle();
         selectedTags = new ArrayList<>();
-        binding.button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showDialog();
-            }
-        });
-        return binding.getRoot();
+        binding.button.setOnClickListener(v -> showDialog());
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        long totalDistance = prefs.getLong("total_distance", 0);
+        String SavedUnits = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString("unit_pref", "Метры");
+        switch (SavedUnits) {
+            case "Мили":
+                binding.distancePassed.setText("Всего пройдено: " +
+                        String.format("%.2f миль", totalDistance / 1609.34));
+            case "Футы":
+                binding.distancePassed.setText("Всего пройдено: " +
+                        String.format("%.2f футов", totalDistance / 0.3048));
+            case "Ярды":
+                binding.distancePassed.setText("Всего пройдено: " +
+                        String.format("%.2f ярдов", totalDistance / 0.9144));
+            case "Метры":
+                if (totalDistance >= 1000) {
+                    binding.distancePassed.setText("Всего пройдено: " +
+                            String.format("%.2f км", totalDistance / 1000));
+                } else {
+                    binding.distancePassed.setText("Всего пройдено: " +
+                            String.format("%.0f м", totalDistance));
+                }
+            default:
+                throw new IllegalStateException("Unexpected value: " + SavedUnits);
+        }
     }
 
     private void showDialog() {
@@ -71,7 +98,7 @@ public class MenuFragment extends Fragment {
         toast.setView(layout);
         TextView toastText = layout.findViewById(R.id.toast_text);
         autoCompleteTextView = dialog.findViewById(R.id.auto_complete_text);
-        recyclerView = dialog.findViewById(R.id.poi_recycler);
+        RecyclerView recyclerView = dialog.findViewById(R.id.poi_recycler);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         List<POI> tagList = Arrays.asList(
                 new POI("shop", null, "Магазины"),
@@ -79,23 +106,20 @@ public class MenuFragment extends Fragment {
                 new POI("historic", null, "Памятник"));
         POIAdapter adapter = new POIAdapter(tagList, selectedTags);
         recyclerView.setAdapter(adapter);
-        adapterItems = new ArrayAdapter<>(requireContext(), R.layout.list_layout, lengthItems);
+        ArrayAdapter<String> adapterItems = new ArrayAdapter<>(requireContext(), R.layout.list_layout, lengthItems);
         autoCompleteTextView.setAdapter(adapterItems);
-        autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String item = parent.getItemAtPosition(position).toString();
-                autoCompleteTextView.setText(item, false);
-                if (item.equals(lengthItems[0])) {
-                    currentDistance = DistanceType.Long;
-                } else if (item.equals(lengthItems[1])) {
-                    currentDistance = DistanceType.Medium;
-                } else {
-                    currentDistance = DistanceType.Small;
-                }
-                toastText.setText("Выбрано: " + item);
-                toast.show();
+        autoCompleteTextView.setOnItemClickListener((parent, view, position, id) -> {
+            String item = parent.getItemAtPosition(position).toString();
+            autoCompleteTextView.setText(item, false);
+            if (item.equals(lengthItems[0])) {
+                currentDistance = DistanceType.Long;
+            } else if (item.equals(lengthItems[1])) {
+                currentDistance = DistanceType.Medium;
+            } else {
+                currentDistance = DistanceType.Small;
             }
+            toastText.setText("Выбрано: " + item);
+            toast.show();
         });
         autoCompleteTextView.setOnClickListener(v -> autoCompleteTextView.showDropDown());
         Button dlgbtn = dialog.findViewById(R.id.button5);

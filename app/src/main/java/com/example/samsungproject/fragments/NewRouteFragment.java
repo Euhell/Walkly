@@ -1,6 +1,7 @@
 package com.example.samsungproject.fragments;
 
 import android.Manifest;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -56,21 +57,23 @@ public class NewRouteFragment extends Fragment {
     private Polyline routeOverlay;
     private GeoPoint lastLocation;
     private GeoPoint endLocation;
-    private long lastUpdateTime = 0;
-    private static final long UPDATE_INTERVAL_MS = 15000;
+    // private long lastUpdateTime = 0;
+    // private static final long UPDATE_INTERVAL_MS = 15000;
     private static final double MIN_DISTANCE_CHANGE_METERS = 15;
     private final DistanceType distancetype = MenuFragment.currentDistance;
     private static double endLon;
     private static double endLat;
     private boolean routeReady = false;
     private boolean routeCompleted = false;
+    private long routeDistance;
+    private SharedPreferences prefs;
     private int poiRetryCount = 0;
     private ArrayList<POI> selectedTags;
     private FragmentNewrouteBinding binding;
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentNewrouteBinding.inflate(inflater, container, false);
         Configuration.getInstance().load(requireContext(), PreferenceManager.getDefaultSharedPreferences(getContext()));
@@ -98,6 +101,7 @@ public class NewRouteFragment extends Fragment {
                 map.getController().animateTo(currentLocation);
             }
         });
+        prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         if (routeFetcher == null) {
             routeFetcher = new RouteFetcher();
         }
@@ -222,6 +226,7 @@ public class NewRouteFragment extends Fragment {
                             Log.d("PathGenerator(POIFetcher)", "Конечные координаты: " + endLat + ", " + endLon);
                             endLocation = new GeoPoint(endLat, endLon);
                             double distance = distanceBetween(startLocation, endLocation);
+                            routeDistance = (long) distance;
                             distanceLeft.setText(formatDistance(distance));
                             routeReady = true;
                             routeCompleted = false;
@@ -252,7 +257,7 @@ public class NewRouteFragment extends Fragment {
         myLocationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
             GeoPoint currentLocation = myLocationOverlay.getMyLocation();
             if (currentLocation != null) {
-                long currentTime = System.currentTimeMillis();
+               //  long currentTime = System.currentTimeMillis();
                 if (shouldUpdateRoute(currentLocation /*, currentTime */)) {
                     Log.d("UpdateLocation", "Обновление маршрута: " +
                             currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
@@ -260,13 +265,18 @@ public class NewRouteFragment extends Fragment {
                         drawRoute(currentLocation.getLatitude(), currentLocation.getLongitude(),
                                 endLat, endLon, "foot");
                         lastLocation = currentLocation;
-                        lastUpdateTime = currentTime;
+                        // lastUpdateTime = currentTime;
                     } catch (IOException e) {
                         Log.e("RouteError", "Ошибка построения маршрута", e);
                     }
                 } else if (distanceBetween(currentLocation, endLocation) <= 10) {
                     distanceLeft.setText("Маршрут пройден");
                     routeCompleted = true;
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putLong("last_distance", routeDistance);
+                    long totalDistance = prefs.getLong("total_distance", 0);
+                    editor.putLong("total_distance", totalDistance + routeDistance);
+                    editor.apply();
                     Toast.makeText(requireContext(), "Вы достигли точки назначения!", Toast.LENGTH_LONG).show();
                     map.getOverlays().remove(routeOverlay);
                 } else {
@@ -341,13 +351,10 @@ public class NewRouteFragment extends Fragment {
         return fragment;
     }
 
-    private String getSelectedUnit() {
-        return PreferenceManager.getDefaultSharedPreferences(requireContext())
-                .getString("unit_pref", "Метры");
-    }
 
     private String formatDistance(double meters) {
-        String unit = getSelectedUnit();
+        String unit = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString("unit_pref", "Метры");
         switch (unit) {
             case "Мили":
                 return String.format("%.2f миль", meters / 1609.34);
