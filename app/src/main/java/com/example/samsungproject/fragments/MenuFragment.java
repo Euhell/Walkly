@@ -1,7 +1,6 @@
 package com.example.samsungproject.fragments;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -10,35 +9,34 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.samsungproject.DistanceType;
-import com.example.samsungproject.POI;
-import com.example.samsungproject.POIAdapter;
+import com.example.samsungproject.types.DistanceType;
+import com.example.samsungproject.adapters.LeaderboardAdapter;
+import com.example.samsungproject.types.POI;
+import com.example.samsungproject.adapters.POIAdapter;
 import com.example.samsungproject.R;
+import com.example.samsungproject.types.LeaderboardUser;
 import com.example.samsungproject.activities.MainActivity;
 import com.example.samsungproject.databinding.FragmentMenuBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
 public class MenuFragment extends Fragment {
@@ -90,6 +88,23 @@ public class MenuFragment extends Fragment {
             default:
                 throw new IllegalStateException("Unexpected value: " + SavedUnits);
         }
+        RecyclerView leaderboardRecycler = binding.leaderboard;
+        leaderboardRecycler.setLayoutManager(new LinearLayoutManager(requireContext()));
+        LeaderboardAdapter leaderboardAdapter = new LeaderboardAdapter(requireContext());
+        leaderboardRecycler.setAdapter(leaderboardAdapter);
+        FirebaseFirestore.getInstance()
+                .collection("users")
+                .orderBy("score", Query.Direction.DESCENDING)
+                .limit(10)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    List<LeaderboardUser> userList = new ArrayList<>();
+                    for (DocumentSnapshot doc : snapshot.getDocuments()) {
+                        LeaderboardUser user = doc.toObject(LeaderboardUser.class);
+                        userList.add(user);
+                    }
+                    leaderboardAdapter.setItems(userList);
+                });
     }
 
     private void showDialog() {

@@ -10,14 +10,18 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.samsungproject.R;
+import com.example.samsungproject.fragments.LoginFragment;
 import com.example.samsungproject.fragments.MenuFragment;
 import com.example.samsungproject.fragments.NewRouteFragment;
 import com.example.samsungproject.fragments.SettingsFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LoginFragment.OnLoginSuccessListener {
     private final Map<Integer, Fragment> fragmentMap = new HashMap<>();
     private Fragment activeFragment;
     @Override
@@ -35,6 +39,8 @@ public class MainActivity extends AppCompatActivity {
         AppCompatDelegate.setDefaultNightMode(mode);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        boolean isLoggedIn = currentUser != null;
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         fragmentMap.put(R.id.menuFragment, new MenuFragment());
         fragmentMap.put(R.id.newpathFragment, new NewRouteFragment());
@@ -46,8 +52,16 @@ public class MainActivity extends AppCompatActivity {
                         .hide(entry.getValue())
                         .commit();
             }
-            activeFragment = fragmentMap.get(R.id.menuFragment);
-            getSupportFragmentManager().beginTransaction().show(activeFragment).commit();
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            if (isLoggedIn) {
+                activeFragment = fragmentMap.get(R.id.menuFragment);
+                transaction.show(activeFragment);
+            } else {
+                LoginFragment loginFragment = new LoginFragment();
+                transaction.add(R.id.fragment_container, loginFragment, "login");
+                activeFragment = loginFragment;
+            }
+            transaction.commit();
         } else {
             for (Map.Entry<Integer, Fragment> entry : fragmentMap.entrySet()) {
                 Fragment fragment = getSupportFragmentManager().findFragmentByTag(String.valueOf(entry.getKey()));
@@ -81,5 +95,19 @@ public class MainActivity extends AppCompatActivity {
     public void updateFragment(int id, Fragment newFragment) {
         fragmentMap.put(id, newFragment);
         activeFragment = newFragment;
+    }
+
+    @Override
+    public void onLoginSuccess() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        Fragment loginFragment = getSupportFragmentManager().findFragmentByTag("login");
+        if (loginFragment != null) {
+            transaction.remove(loginFragment);
+        }
+        Fragment menuFragment = fragmentMap.get(R.id.menuFragment);
+        if (menuFragment != null) {
+            transaction.show(menuFragment).commit();
+            activeFragment = menuFragment;
+        }
     }
 }

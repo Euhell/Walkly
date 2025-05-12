@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">SamsungProject</string>
+    <string name="release_app_name">Walkly</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="logged_in">Вы вошли в аккаунт:</string>
     <string name="my_routes">Мои маршруты</string>
@@ -22,4 +23,5 @@
     <string name="select_units_of_distance_measurement">Выбрать единицы расстояния</string>
     <string name="app_theme">Тема приложения</string>
     <string name="Passed">Всего пройдено:</string>
+    <string name="leaderboard">Топ пользователей:</string>
 </resources>

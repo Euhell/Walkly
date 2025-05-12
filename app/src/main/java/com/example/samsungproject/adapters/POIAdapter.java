@@ -1,4 +1,4 @@
-package com.example.samsungproject;
+package com.example.samsungproject.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,9 +8,10 @@ import android.widget.CheckBox;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.samsungproject.R;
+import com.example.samsungproject.types.POI;
+
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 public class POIAdapter extends RecyclerView.Adapter<POIAdapter.ViewHolder> {

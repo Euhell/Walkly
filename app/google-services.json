@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "533448214733",
+    "project_id": "walkly-6016c",
+    "storage_bucket": "walkly-6016c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533448214733:android:9e7456cf076e5c22914184",
+        "android_client_info": {
+          "package_name": "com.example.samsungproject"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "533448214733-t2brr2p0f4nfbbd37hou03q4cgem413f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.samsungproject",
+            "certificate_hash": "99d46c64b1acd6d29390d84408f43beddd9dde64"
+          }
+        },
+        {
+          "client_id": "533448214733-637mcqol3sj0ncjp39mcdtg2083cpapt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQYiMCtSkz31D2za9DeR5NegfgIHwRZI0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "533448214733-637mcqol3sj0ncjp39mcdtg2083cpapt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

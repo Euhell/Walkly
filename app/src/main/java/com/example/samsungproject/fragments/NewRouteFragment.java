@@ -23,13 +23,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.samsungproject.APICallback;
-import com.example.samsungproject.API_IGNORE;
-import com.example.samsungproject.DistanceType;
-import com.example.samsungproject.POI;
+import com.example.samsungproject.types.DistanceType;
+import com.example.samsungproject.types.POI;
 import com.example.samsungproject.R;
 import com.example.samsungproject.databinding.FragmentNewrouteBinding;
 import com.example.samsungproject.fetchers.POIFetcher;
 import com.example.samsungproject.fetchers.RouteFetcher;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import org.osmdroid.views.MapView;
 import org.osmdroid.config.Configuration;
@@ -57,9 +58,8 @@ public class NewRouteFragment extends Fragment {
     private Polyline routeOverlay;
     private GeoPoint lastLocation;
     private GeoPoint endLocation;
-    // private long lastUpdateTime = 0;
-    // private static final long UPDATE_INTERVAL_MS = 15000;
     private static final double MIN_DISTANCE_CHANGE_METERS = 15;
+    private static final int MAX_POI_RETRIES = 3;
     private final DistanceType distancetype = MenuFragment.currentDistance;
     private static double endLon;
     private static double endLat;
@@ -236,8 +236,8 @@ public class NewRouteFragment extends Fragment {
 
                     @Override
                     public void onError(String error) {
-                        if (error.equals(API_IGNORE.ERROR_NO_POI)) {
-                            if (poiRetryCount < API_IGNORE.MAX_POI_RETRIES) {
+                        if (error.equals(POIFetcher.ERROR_NO_POI)) {
+                            if (poiRetryCount < MAX_POI_RETRIES) {
                                 poiRetryCount++;
                                 Log.w("POIFetcher", "POI не найден, попытка " + poiRetryCount);
                                 requireActivity().runOnUiThread(() -> generatePath());
@@ -257,15 +257,13 @@ public class NewRouteFragment extends Fragment {
         myLocationOverlay.runOnFirstFix(() -> requireActivity().runOnUiThread(() -> {
             GeoPoint currentLocation = myLocationOverlay.getMyLocation();
             if (currentLocation != null) {
-               //  long currentTime = System.currentTimeMillis();
-                if (shouldUpdateRoute(currentLocation /*, currentTime */)) {
+                if (shouldUpdateRoute(currentLocation)) {
                     Log.d("UpdateLocation", "Обновление маршрута: " +
                             currentLocation.getLatitude() + ", " + currentLocation.getLongitude());
                     try {
                         drawRoute(currentLocation.getLatitude(), currentLocation.getLongitude(),
                                 endLat, endLon, "foot");
                         lastLocation = currentLocation;
-                        // lastUpdateTime = currentTime;
                     } catch (IOException e) {
                         Log.e("RouteError", "Ошибка построения маршрута", e);
                     }
@@ -277,6 +275,10 @@ public class NewRouteFragment extends Fragment {
                     long totalDistance = prefs.getLong("total_distance", 0);
                     editor.putLong("total_distance", totalDistance + routeDistance);
                     editor.apply();
+                    FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(FirebaseAuth.getInstance().getUid())
+                            .update("score", totalDistance + routeDistance);
                     Toast.makeText(requireContext(), "Вы достигли точки назначения!", Toast.LENGTH_LONG).show();
                     map.getOverlays().remove(routeOverlay);
                 } else {
@@ -288,13 +290,10 @@ public class NewRouteFragment extends Fragment {
         }));
     }
 
-    private boolean shouldUpdateRoute(GeoPoint newLocation /*, long currentTime */) {
+    private boolean shouldUpdateRoute(GeoPoint newLocation) {
         if (lastLocation == null) {
             return true;
         }
-//        if ((currentTime - lastUpdateTime) < UPDATE_INTERVAL_MS) {
-//            return false;
-//        }
         double distance = distanceBetween(lastLocation, newLocation);
         distanceLeft.setText(formatDistance(distance));
 

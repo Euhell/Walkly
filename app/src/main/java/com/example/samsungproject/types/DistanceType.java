@@ -1,4 +1,4 @@
-package com.example.samsungproject;
+package com.example.samsungproject.types;
 
 public enum DistanceType {
     Small,

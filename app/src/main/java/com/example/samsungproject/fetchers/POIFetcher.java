@@ -5,8 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.samsungproject.APICallback;
-import com.example.samsungproject.API_IGNORE;
-import com.example.samsungproject.POI;
+import com.example.samsungproject.types.POI;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,7 +13,6 @@ import org.osmdroid.util.GeoPoint;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -28,6 +26,7 @@ public class POIFetcher {
 
     private static final String API_URL = "https://overpass.kumi.systems/api/interpreter?data=[out:json][timeout:25];(";
     private OkHttpClient client = new OkHttpClient();
+    public static final String ERROR_NO_POI = "NO_POI_FOUND";
 
     public void getNearestPOI(GeoPoint point, ArrayList<POI> selectedTags,
                               APICallback callback) {
@@ -59,7 +58,7 @@ public class POIFetcher {
                     JSONObject jsonResponse = new JSONObject(responseBody);
                     JSONArray elements = jsonResponse.getJSONArray("elements");
                     if (elements.length() == 0) {
-                        callback.onError(API_IGNORE.ERROR_NO_POI);
+                        callback.onError(ERROR_NO_POI);
                         return;
                     }
                     JSONObject poi = elements.getJSONObject(new Random().nextInt(elements.length()));
