@@ -270,11 +270,12 @@ public class NewRouteFragment extends Fragment {
                 } else if (distanceBetween(currentLocation, endLocation) <= 10) {
                     distanceLeft.setText("Маршрут пройден");
                     routeCompleted = true;
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putLong("last_distance", routeDistance);
-                    long totalDistance = prefs.getLong("total_distance", 0);
-                    editor.putLong("total_distance", totalDistance + routeDistance);
-                    editor.apply();
+                    String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                            ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                            : "guest";
+                    String distanceKey = "total_distance_" + userId;
+                    long totalDistance = prefs.getLong(distanceKey, 0);
+                    prefs.edit().putLong(distanceKey, totalDistance + routeDistance).apply();
                     FirebaseFirestore.getInstance()
                             .collection("users")
                             .document(FirebaseAuth.getInstance().getUid())

@@ -31,6 +31,7 @@ import com.example.samsungproject.types.LeaderboardUser;
 import com.example.samsungproject.activities.MainActivity;
 import com.example.samsungproject.databinding.FragmentMenuBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -56,11 +57,19 @@ public class MenuFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        if (getActivity() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) getActivity();
+            mainActivity.setBottomNavigationVisibility(View.VISIBLE);
+        }
         args = new Bundle();
         selectedTags = new ArrayList<>();
         binding.button.setOnClickListener(v -> showDialog());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        long totalDistance = prefs.getLong("total_distance", 0);
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : "guest";
+        String distanceKey = "total_distance_" + userId;
+        long totalDistance = prefs.getLong(distanceKey, 0);
         String SavedUnits = PreferenceManager.getDefaultSharedPreferences(requireContext())
                 .getString("unit_pref", "Метры");
         switch (SavedUnits) {

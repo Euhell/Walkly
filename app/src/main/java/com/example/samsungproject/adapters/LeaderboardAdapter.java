@@ -1,6 +1,7 @@
 package com.example.samsungproject.adapters;
 
 import android.content.Context;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,8 +44,33 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
     public void onBindViewHolder(@NonNull LeaderboardAdapter.ViewHolder holder, int position) {
         LeaderboardUser user = userList.get(position);
         holder.nameTextView.setText(user.displayName != null ? user.displayName : "Без имени");
-        holder.scoreTextView.setText(user.score + " м");
-
+        String SavedUnits = PreferenceManager.getDefaultSharedPreferences(context)
+                .getString("unit_pref", "Метры");
+        switch (SavedUnits) {
+            case "Мили":
+                holder.scoreTextView.setText("Всего пройдено: " +
+                        String.format("%.2f миль", (double) user.score / 1609.34));
+                break;
+            case "Футы":
+                holder.scoreTextView.setText("Всего пройдено: " +
+                        String.format("%.2f футов", (double) user.score / 0.3048));
+                break;
+            case "Ярды":
+                holder.scoreTextView.setText("Всего пройдено: " +
+                        String.format("%.2f ярдов", (double) user.score / 0.9144));
+                break;
+            case "Метры":
+                if (user.score >= 1000) {
+                    holder.scoreTextView.setText("Всего пройдено: " +
+                            String.format("%.2f км", (double) user.score / 1000));
+                } else {
+                    holder.scoreTextView.setText("Всего пройдено: " +
+                            String.format("%.0f м", (double) user.score));
+                }
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + SavedUnits);
+        }
         if (user.photoUrl != null && !user.photoUrl.isEmpty()) {
             Glide.with(context).load(user.photoUrl).into(holder.avatarImageView);
         } else {

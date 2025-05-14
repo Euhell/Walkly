@@ -10,22 +10,36 @@
         android:id="@+id/appNameText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:text="@string/release_app_name"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/signInButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="250dp"
         android:text="Войти через Google"
-        app:layout_constraintTop_toBottomOf="@+id/appNameText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.4" />
+        app:layout_constraintTop_toBottomOf="@+id/appNameText"
+        app:layout_constraintVertical_bias="0.0"
+        />
+
+    <Button
+        android:id="@+id/signInGuest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Войти как гость"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/signInButton"
+        app:layout_constraintVertical_bias="0.1"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

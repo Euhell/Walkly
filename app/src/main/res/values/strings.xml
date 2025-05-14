@@ -24,4 +24,13 @@
     <string name="app_theme">Тема приложения</string>
     <string name="Passed">Всего пройдено:</string>
     <string name="leaderboard">Топ пользователей:</string>
+    <string name="theme">Тема</string>
+    <string name="units">Eдиницы измерения</string>
+    <string name="exit_from_account">Выйти из аккаунта</string>
+    <string-array name="unists">
+        <item>Метры</item>
+        <item>Мили</item>
+        Футы
+        Ярды
+    </string-array>
 </resources>

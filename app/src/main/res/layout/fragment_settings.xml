@@ -29,4 +29,43 @@
         android:padding="16dp"
         />
 
+    <TextView
+        android:id="@+id/theme_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/theme"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/theme"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.065"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <TextView
+        android:id="@+id/units_tv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/units"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/units"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.065"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/theme"
+        app:layout_constraintVertical_bias="1.0" />
+
+    <Button
+        android:id="@+id/exit_from_account"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/exit_from_account"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/theme"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

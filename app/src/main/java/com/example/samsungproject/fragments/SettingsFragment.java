@@ -16,7 +16,13 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
+import com.example.samsungproject.BuildConfig;
+import com.example.samsungproject.activities.MainActivity;
 import com.example.samsungproject.databinding.FragmentSettingsBinding;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Arrays;
 
@@ -33,6 +39,7 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+//         String[] abc = getResources().getStringArray(1);
         String[] units = {"Метры", "Мили", "Футы", "Ярды"};
         String[] themes = {"Системная", "Светлая", "Тёмная"};
         ArrayAdapter<String> adapterUnits = new ArrayAdapter<>(requireContext(),
@@ -68,6 +75,7 @@ public class SettingsFragment extends Fragment {
         binding.theme.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+
                 if (!themeInitialized[0]) {
                     themeInitialized[0] = true;
                     return;
@@ -84,12 +92,30 @@ public class SettingsFragment extends Fragment {
                     } else {
                         mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
                     }
-                    Toast.makeText(requireContext(), "Выбрано: " + mode, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Выбрана тема: " + selectedTheme, Toast.LENGTH_SHORT).show();
                     AppCompatDelegate.setDefaultNightMode(mode);
                     requireActivity().recreate();
                 }
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+        binding.exitFromAccount.setOnClickListener(v -> {
+            prefs.edit().remove("is_guest").apply();
+            FirebaseAuth.getInstance().signOut();
+            GoogleSignInClient googleSignInClient = GoogleSignIn.getClient(
+                    requireContext(),
+                    new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestIdToken(BuildConfig.WEB_CLIENT_ID)
+                            .requestEmail()
+                            .build()
+            );
+            googleSignInClient.signOut().addOnCompleteListener(task -> {
+                Toast.makeText(requireContext(), "Вы вышли из аккаунта", Toast.LENGTH_SHORT).show();
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(com.example.samsungproject.R.id.fragment_container, new LoginFragment(), "login")
+                        .commit();
+            });
         });
     }
 

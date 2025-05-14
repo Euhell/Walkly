@@ -3,6 +3,7 @@ package com.example.samsungproject.activities;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -10,6 +11,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.samsungproject.R;
+import com.example.samsungproject.databinding.ActivityMainBinding;
+import com.example.samsungproject.databinding.FragmentSettingsBinding;
 import com.example.samsungproject.fragments.LoginFragment;
 import com.example.samsungproject.fragments.MenuFragment;
 import com.example.samsungproject.fragments.NewRouteFragment;
@@ -24,8 +27,10 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity implements LoginFragment.OnLoginSuccessListener {
     private final Map<Integer, Fragment> fragmentMap = new HashMap<>();
     private Fragment activeFragment;
+    ActivityMainBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         String theme = prefs.getString("app_theme", "Системная");
         int mode;
@@ -38,10 +43,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
         }
         AppCompatDelegate.setDefaultNightMode(mode);
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(binding.getRoot());
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        boolean isLoggedIn = currentUser != null;
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        boolean isGuest = prefs.getBoolean("is_guest", false);
+        boolean isLoggedIn = currentUser != null && !isGuest;
         fragmentMap.put(R.id.menuFragment, new MenuFragment());
         fragmentMap.put(R.id.newpathFragment, new NewRouteFragment());
         fragmentMap.put(R.id.settingsFragment, new SettingsFragment());
@@ -71,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
                     .filter(Fragment::isVisible).findFirst()
                     .orElse(fragmentMap.get(R.id.menuFragment));
         }
-        bottomNavigationView.setOnItemSelectedListener(item -> {
+        binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = fragmentMap.get(item.getItemId());
             if (selectedFragment != null && selectedFragment != activeFragment) {
                 FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -97,6 +102,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
         activeFragment = newFragment;
     }
 
+    public void setBottomNavigationVisibility(int visibility) {
+        binding.bottomNavigationView.setVisibility(visibility);
+    }
+
     @Override
     public void onLoginSuccess() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -106,8 +115,13 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnL
         }
         Fragment menuFragment = fragmentMap.get(R.id.menuFragment);
         if (menuFragment != null) {
+            if (!menuFragment.isAdded()) {
+                transaction.add(R.id.fragment_container, menuFragment, String.valueOf(R.id.menuFragment));
+            }
             transaction.show(menuFragment).commit();
             activeFragment = menuFragment;
+            binding.bottomNavigationView.setVisibility(View.VISIBLE);
+            binding.bottomNavigationView.setSelectedItemId(R.id.menuFragment);
         }
     }
 }
