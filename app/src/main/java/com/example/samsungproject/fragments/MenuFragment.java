@@ -43,7 +43,7 @@ import java.util.List;
 public class MenuFragment extends Fragment {
     private FragmentMenuBinding binding;
     public static DistanceType currentDistance;
-    private final String[] lengthItems = {"Длинный", "Средний", "Короткий"};
+    private String[] lengthItems;
     private AutoCompleteTextView autoCompleteTextView;
     private Bundle args;
     private ArrayList<POI> selectedTags;
@@ -63,6 +63,7 @@ public class MenuFragment extends Fragment {
         }
         args = new Bundle();
         selectedTags = new ArrayList<>();
+        lengthItems = getResources().getStringArray(R.array.lengthItems);
         binding.button.setOnClickListener(v -> showDialog());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(requireContext());
         String userId = FirebaseAuth.getInstance().getCurrentUser() != null

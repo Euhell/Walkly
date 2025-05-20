@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.example.samsungproject.BuildConfig;
+import com.example.samsungproject.R;
 import com.example.samsungproject.activities.MainActivity;
 import com.example.samsungproject.databinding.FragmentSettingsBinding;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -39,9 +40,8 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-//         String[] abc = getResources().getStringArray(1);
-        String[] units = {"Метры", "Мили", "Футы", "Ярды"};
-        String[] themes = {"Системная", "Светлая", "Тёмная"};
+        String[] units = getResources().getStringArray(R.array.units);
+        String[] themes = getResources().getStringArray(R.array.themes);
         ArrayAdapter<String> adapterUnits = new ArrayAdapter<>(requireContext(),
                 android.R.layout.simple_list_item_1, units);
         ArrayAdapter<String> adapterTheme = new ArrayAdapter<>(requireContext(),

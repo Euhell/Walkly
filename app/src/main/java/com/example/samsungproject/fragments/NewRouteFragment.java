@@ -64,7 +64,6 @@ public class NewRouteFragment extends Fragment {
     private static double endLon;
     private static double endLat;
     private boolean routeReady = false;
-    private boolean routeCompleted = false;
     private long routeDistance;
     private SharedPreferences prefs;
     private int poiRetryCount = 0;
@@ -229,7 +228,6 @@ public class NewRouteFragment extends Fragment {
                             routeDistance = (long) distance;
                             distanceLeft.setText(formatDistance(distance));
                             routeReady = true;
-                            routeCompleted = false;
                             updateLocation();
                         });
                     }
@@ -243,6 +241,7 @@ public class NewRouteFragment extends Fragment {
                                 requireActivity().runOnUiThread(() -> generatePath());
                             } else {
                                 Log.e("POIFetcher", "Максимальное количество попыток достигнуто");
+                                Toast.makeText(requireContext(), "Точка интереса не найдена", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Log.e("PathGenerator(POIFetcher)", error);
@@ -269,7 +268,6 @@ public class NewRouteFragment extends Fragment {
                     }
                 } else if (distanceBetween(currentLocation, endLocation) <= 10) {
                     distanceLeft.setText("Маршрут пройден");
-                    routeCompleted = true;
                     String userId = FirebaseAuth.getInstance().getCurrentUser() != null
                             ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                             : "guest";

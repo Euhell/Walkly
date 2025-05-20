@@ -27,10 +27,21 @@
     <string name="theme">Тема</string>
     <string name="units">Eдиницы измерения</string>
     <string name="exit_from_account">Выйти из аккаунта</string>
-    <string-array name="unists">
+    <string-array name="units">
         <item>Метры</item>
         <item>Мили</item>
-        Футы
-        Ярды
+        <item>Футы</item>
+        <item>Ярды</item>
     </string-array>
+    <string-array name="themes">
+        <item>Системная</item>
+        <item>Светлая</item>
+        <item>Тёмная</item>
+    </string-array>
+    <string-array name="lengthItems">
+        <item>Длинный</item>
+        <item>Средний</item>
+        <item>Короткий</item>
+    </string-array>
+
 </resources>
